@@ -1,54 +1,60 @@
 clear all; clear cache; close all; clc
 cd E:\MT_MST\Plexon\PLXfiles
 %% Merge a & b + create spikewaveforms
-a = load('ytu310c.mat');
+name = 'ytu337c.mat';
+a = load(name);
 Fs = a.params.Fsds;
 allcomb = a.params.comb.allcomb;
 Xa = {a.xsorted.xfs}';
-
 spkt = [];
-for i = 1:size(Xa,1)
-    spkt(i).NMS = Xa{i};
-end
-
-%% Covering missing trials with zeros
-for i = 1:size(spkt,2)
-    if size(spkt(i).NMS,3) ~= 4
-        missC = 4 - size(spkt(i).NMS,3);
-        spkt(i).NMS(:,:,end + missC) = zeros;
-    end
-end
-%% Creating a 6D matrix ch * npoints * dir * motion * position * repetition
-NMS = [];
-NMScell = {spkt.NMS}';
-i = 1;
-for j = 1:8 % #direction 
-    for z = 1:size(unique(allcomb(:,2)),1) % #motion
-        for w = 1:size(unique(allcomb(:,3)),1) % #position
-            NMS(j,z,w,:,:,:) = double(NMScell{i,1});
-            i = i + 1;
+angles = sort(unique(allcomb(:,1)));
+S = angles(logical([1 0 1 0 1 0 1 0]));
+N = angles(~logical([1 0 1 0 1 0 1 0]));
+j = 1; z = 1;
+for i = 1:length(allcomb)
+    if ~isempty(Xa{i})
+        if any(allcomb(i,1) == S)
+            spkt.MS(:,:,j) = Xa{i};
+            j = j + 1;
+        elseif any(allcomb(i,1) == N)
+            spkt.NMS(:,:,z) = Xa{i};
+            z = z + 1;
         end
     end
 end
-NMS = permute(NMS,[4 5 1 2 3 6]);
+%% Creating a 3D matrix ch * npoints * repetition
+NMS = spkt.NMS;
+MS = spkt.MS;
+NMS(:,4001:5000,:,:,:,:) = [];
+MS(:,4001:5000,:,:,:,:) = [];
 %% remove microstim artifact
 lbthr = 0.0005;
 zeroSize = 0.03 * Fs; % 30 msec 
 blackoutNMS = findblackout(NMS,lbthr,zeroSize);
+blackoutMS = findblackout(MS,lbthr,zeroSize);
 %% Threshold for spike sorting
 stdmin = 3; % min threshold for detection
 stdmax = 10; % max threshold for detection
-[thrnms thrmaxnms] = findthreshold(NMS,stdmin,stdmax);
+[thrnms thrmaxnms] = findthreshold_fix(NMS,stdmin,stdmax);
+[thrms thrmaxms] = findthreshold_fix(MS,stdmin,stdmax);
 %% Generate spike trains
 spktNMS = [];
-nrept = 4;
-spktNMS = findspkt(NMS,nrept,thrnms,thrmaxnms);%thrnms
+spktMS = [];
+nrept = size(NMS,3);
+spktNMS = findspkt_fix(NMS,nrept,thrnms,thrmaxnms);%thrnms
+spktMS = findspkt_fix(MS,size(MS,3),thrms,thrmaxms);
 %% Firing Rate and Discarding blackouts
-[frbl frst prCorrect fr_bl] = FireRate_bin(spktNMS,blackoutNMS,Fs);
+[frbl frst prCorrect fr_bl] = FireRate_bin_fix(spktNMS,blackoutNMS,Fs);
+save(['E:\MT_MST\Microstim\MUA-Fix\',sprintf('%sN.mat',name)],'frst','frbl','spktNMS','blackoutNMS','prCorrect')
+frbl = []; frst = []; prCorrect = []; fr_bl = [];
+[frbl frst prCorrect fr_bl] = FireRate_bin_fix(spktMS,blackoutMS,Fs);
+save(['E:\MT_MST\Microstim\MUA-Fix\',sprintf('%sS.mat',name)],'frst','frbl','spktMS','blackoutMS','prCorrect')
+soundsc(rand(3000,1))
+return
 %% Plot Tuning Curves
 dir = [0:45:315];
-for i = 51:59
-    tcplotMUA(dir,frst,2,3,3,frbl,i,prCorrect)
+for i = 20:30
+    tcplotMUA(dir,frst,1,3,3,frbl,i,prCorrect)
 %     tcplotMUA(dir,frst,2,3,3,frbl,i,prCorrect)
 end
 return

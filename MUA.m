@@ -1,8 +1,9 @@
 clear all; clear cache; close all; clc
 cd E:\MT_MST\Plexon\PLXfiles
 %% Merge a & b + create spikewaveforms
-a = load('ytu329ap.mat');
-b = load('ytu329bp.mat');
+name = 'ytu310';
+a = load(sprintf('%sa.mat',name));
+b = load(sprintf('%sb.mat',name));
 Fs = a.params.Fsds;
 
 allcomb = a.params.comb.allcomb;
@@ -60,6 +61,8 @@ for j = 1:8 % #direction
 end
 NMS = permute(NMS,[4 5 1 2 3 6]);
 MS = permute(MS,[4 5 1 2 3 6]);
+NMS(:,4001:5000,:,:,:,:) = [];
+MS(:,4001:5000,:,:,:,:) = [];
 %% remove microstim artifact
 lbthr = 0.0005;
 zeroSize = 0.03 * Fs; % 30 msec 
@@ -78,19 +81,23 @@ spktNMS = findspkt(NMS,nrept,thrnms,thrmaxnms);%thrnms
 spktMS = findspkt(MS,nrept,thrms,thrmaxms);
 %% Firing Rate and Discarding blackouts
 [frbl frst prCorrect fr_bl] = FireRate_bin(spktNMS,blackoutNMS,Fs);
+save(['E:\MT_MST\Microstim\MST-MUA\',sprintf('%sN.mat',name)],'frst','frbl','spktNMS','blackoutNMS','prCorrect')
+frbl = []; frst = []; prCorrect = []; fr_bl = [];
+[frbl frst prCorrect fr_bl] = FireRate_bin(spktMS,blackoutMS,Fs);
+save(['E:\MT_MST\Microstim\MST-MUA\',sprintf('%sS.mat',name)],'frst','frbl','spktNMS','blackoutNMS','prCorrect')
+soundsc(rand(3000,1))
+return
 % [frbl frst prCorrect] = FireRate(spktNMS,blackoutNMS,Fs);
 %% Plot Tuning Curves
+clc
 dir = [0:45:315];
-for i = 56:58
+for i = 1:32
+    tcplotMUA(dir,frst,1,3,3,frbl,i,prCorrect)
     tcplotMUA(dir,frst,2,3,3,frbl,i,prCorrect)
-%     tcplotMUA(dir,frst,2,3,3,frbl,i,prCorrect)
+    % T-Test to find good cell
+%     pval(i,1) = GoodCellTtest(frst,fr_bl,i);
 end
-return
-%%
-stim = squeeze(frst(56,:,:,:));
-baseline = squeeze(fr_bl(56,:,:,:));
-[h,p] = ttest(baseline(:),stim(:));
-%%
+%% Generate Random firing rates to test algorithm 
 frst = [];
 frbl = [];
 x = zeros(64,8000,8,3,9,4);
@@ -106,9 +113,9 @@ end
 %%
 % spktNMS = x;
 % blackoutNMS = bout;
-ch = 56;
-mo = 1;
-pos = 9;
+ch = 51;
+mo = 2;
+pos = 1;
 tr = 1;
 figure
 for i = 1:8 
@@ -119,16 +126,16 @@ for i = 1:8
 %         plot(spktNMS(ch,:,i,mo,pos,tr),'r')
     elseif blackoutNMS(ch,i,mo,pos,tr) == 0
         ctl = 'pass';
-        plot((NMS(ch,:,i,mo,pos,tr)),'b')
-%         plot(spktNMS(ch,:,i,mo,pos,tr),'b')
+%         plot((NMS(ch,:,i,mo,pos,tr)),'b')
+        plot(spktNMS(ch,:,i,mo,pos,tr),'b')
     end
     title(sprintf('%s',ctl))
 end
 %%
-dir = 8;
-mo = 1;
-pos = 7;
-tr = 4;
+dir = 3;
+mo = 2;
+pos = 1;
+tr = 1;
 cc = [1:64];
 figure
 for i = 1:64

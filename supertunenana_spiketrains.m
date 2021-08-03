@@ -204,10 +204,10 @@ for ci = 1:length(chunum)
             save(['E:\MT_MST\SuperTuneFiringMatrix\test\',name(1:end-1),condition,num2str(ch),num2str(unit),'firingMat.mat'],'firing')
             save(['E:\MT_MST\SuperTuneFiringMatrix\test\',name(1:end-1),condition,num2str(ch),num2str(unit),'firingMat_bl.mat'],'firing_bl')
         else
-            save(['E:\MT_MST\SuperTuneSpkTrains\ms_removed\',name,num2str(ch),num2str(unit),'spktrain_bl.mat'],'spktrain_bl','Fs')
-            save(['E:\MT_MST\SuperTuneSpkTrains\ms_removed\',name,num2str(ch),num2str(unit),'spktrain.mat'],'spktrain','Fs','RFcenterIdx')
-            save(['E:\MT_MST\SuperTuneFiringMatrix\ms_removed\',name,num2str(ch),num2str(unit),'firingMat.mat'],'firing')
-            save(['E:\MT_MST\SuperTuneFiringMatrix\ms_removed\',name,num2str(ch),num2str(unit),'firingMat_bl.mat'],'firing_bl')
+            save(['E:\MT_MST\SuperTuneSpkTrains\ms_removed_all\',name,num2str(ch),num2str(unit),'spktrain_bl.mat'],'spktrain_bl','Fs')
+            save(['E:\MT_MST\SuperTuneSpkTrains\ms_removed_all\',name,num2str(ch),num2str(unit),'spktrain.mat'],'spktrain','Fs','RFcenterIdx')
+            save(['E:\MT_MST\SuperTuneFiringMatrix\ms_removed_all\',name,num2str(ch),num2str(unit),'firingMat.mat'],'firing')
+            save(['E:\MT_MST\SuperTuneFiringMatrix\ms_removed_all\',name,num2str(ch),num2str(unit),'firingMat_bl.mat'],'firing_bl')
         end
     end
     clearvars -except plt sv v3categ flag nev DprimeV3 DprimeMT RFmapping sep sizeTuning firingAve channel firingGp chunum name Fs microstim condition rows columns microstimParadigm tstMS tendMS

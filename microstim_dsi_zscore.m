@@ -1,16 +1,18 @@
 %% User defined values
 clear all; clc
 close all
-path_firing = 'E:\MT_MST\SuperTuneFiringMatrix\msr\';
-path_spktrain = 'E:\MT_MST\SuperTuneSpkTrains\msr\';
+path_firing = 'E:\MT_MST\SuperTuneFiringMatrix\ms_rmvd\';
+path_spktrain = 'E:\MT_MST\SuperTuneSpkTrains\ms_rmvd\';
 condition = 'S';
 mtype = 2;
-option = 'MS';
+option = '';
 switch option
     case ''
-        names = {'ytu310a','ytu312b','ytu316a','ytu321a','ytu323a','ytu329a','ytu333a','ytu335a'};
+%         names = {'ytu310a','ytu312b','ytu316a','ytu321a','ytu323a','ytu329a','ytu333a','ytu335a'};
+        names = {'ytu310a','ytu312b','ytu316a','ytu321a','ytu323a','ytu329a','ytu333a','ytu335a','ytu337a'};
     case 'MS'
-        names = {'ytu310a','ytu312b','ytu316a','ytu323a','ytu333a','ytu335a','ytu337a'};
+%         names = {'ytu310a','ytu312b','ytu316a','ytu323a','ytu333a','ytu335a','ytu337a'};
+        names = {'ytu312b','ytu316a','ytu323a','ytu329a','ytu335a','ytu337a'};
 end
 switch mtype
     case 1
@@ -25,9 +27,11 @@ for j = 1:length(names)
     params = load(['E:\MT_MST\Plexon\RFiles\',names{1,j},'_TrialStructure.mat']);
     switch option 
         case ''
-            load(['E:\MT_MST\Microstim\Cell_Lib\MS_removed\Candidate Cells\','CLib_',names{1,j}(1:end-1),'.mat'])
+%             load(['E:\MT_MST\Microstim\Cell_Lib\MS_removed\Candidate Cells\','CLib_',names{1,j}(1:end-1),'.mat'])
+            load(['E:\MT_MST\Microstim\Cell_Lib\MST_MU_MT_SU\MT\','CLib_',names{1,j}(1:end-1),'.mat'])
         case 'MS'
-            load(['E:\MT_MST\Microstim\Cell_Lib\MS_removed\MS Cells\','CLib_',names{1,j}(1:end-1),'.mat']) % MUA-cleaned
+%             load(['E:\MT_MST\Microstim\Cell_Lib\MS_removed\MS Cells\','CLib_',names{1,j}(1:end-1),'.mat']) % MUA-cleaned
+            load(['E:\MT_MST\Microstim\Cell_Lib\MST_MU_MT_SU\MST\','CLib_',names{1,j}(1:end-1),'.mat'])
     end
     chidx = CLib;
     clear CLib
@@ -139,4 +143,5 @@ for j = 1:length(names)
     info(j).ch = chid';
     info(j).fid = size(units,1);
 end
-save(['E:\MT_MST\Microstim\PSTH\msr\',sprintf('%s%s%s.mat',condition,type,option)],'info')
+save(['E:\MT_MST\Microstim\PSTH\MUA_SUA\',sprintf('%s%s%s.mat',condition,type,option)],'info')
+soundsc(rand(3000,1))

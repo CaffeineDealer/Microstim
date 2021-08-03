@@ -1,10 +1,11 @@
 clear all; clear cache; clc
-set.fname = 'ytu337b';
+set.fname = 'ytu337c';
 set.analysis = 'MorletWavelet'; % Options are 'MorletWavelet', 'GrangerCausality', 'CrossCorrelation'
 set.CC_type = 'AllMotion'; % CrossCorrelation over either 'AllMotion' or 'SeperateMotion'
 set.win = .4; %msec
+set.offset = .1; %msec
 set.shift = 0; %msec2
-set.mode = 1;
+set.mode = 2;
 if set.mode == 1
     set.type = 'stim';
 elseif set.mode == 2
@@ -16,37 +17,38 @@ set.motion_type = 3;
 set.num_rept = 5;
 set.ang = 8;
 set.grid = 9;
-set.movingwin = [0.5 0.05];
-set.alpha = 0.05;
-set.l = [4 8 16 25 65];
-set.u = [8 12 24 55 95];
-params.Fs = 200;
-params.tapers = [3 5];
-params.pad = 0;
-params.fpass = [0 90];
-params.err = [2 0.05];
+% set.movingwin = [0.5 0.05];
+% set.alpha = 0.05;
+% set.l = [4 8 16 25 65];
+% set.u = [8 12 24 55 95];
+% params.Fs = 200;
+% params.tapers = [3 5];
+% params.pad = 0;
+% params.fpass = [0 90];
+% params.err = [2 0.05];
 % set.maxlag = 0.1 * Fs;
 % y = plt_raw_lfp('ytu337a');
 fname = set(1).fname;
 [taskTrials,PD,ts,Fs,flag,x,goodtrials,info,new_zero,flg] = importEss(fname);
 %     x = x(:,new_zero:end);  % Cutting the LFPs from desired new starting point
-nch = size(x,1); % # of channels after clean up
+% nch = size(x,1); % # of channels after clean up
+nch = 64;
 % Grouping trials
 [params.comb] = trialIdx(info);
 %% MUA
 % get RD files
 [xout params.flag params.Fsds params.thr params.thrmax] = array2matSignal(fname);
 % chop into trials
-xfs = zeros(nch,(set.win * params.Fsds * 2),size(info,1));
-xfix = zeros(nch,(set.win * params.Fsds),size(info,1));
-xstim = xfix;
+xfs = zeros(nch,(set.win * params.Fsds * 2 + (set.offset * params.Fsds)),size(info,1));
+% xfix = zeros(nch,(set.win * params.Fsds),size(info,1));
+% xstim = xfix;
 info(:,15) = ceil(info(:,13) * params.Fsds);
 for j = 1:size(info,1)
-    xfs(:,:,j) = xout(:,info(j,15) - (set.win * params.Fsds) + 1:info(j,15) + (set.win * params.Fsds));
-    xfix(:,:,j) = xout(:,info(j,15) - (set.win * params.Fsds) + 1:info(j,15));
-    xstim(:,:,j) = xout(:,info(j,15) + 1:info(j,15) + (set.win * params.Fsds));
+    xfs(:,:,j) = xout(:,info(j,15) - (set.win * params.Fsds) + 1:info(j,15) + (set.win * params.Fsds) + (set.offset * params.Fsds));
+%     xfix(:,:,j) = xout(:,info(j,15) - (set.win * params.Fsds) + 1:info(j,15));
+%     xstim(:,:,j) = xout(:,info(j,15) + 1:info(j,15) + (set.win * params.Fsds));
 end
-t = -.4:1/params.Fsds:0.4;
+t = -.4:1/params.Fsds:0.5;
 t(end) = [];
 % Remove mean Fixation from Stim
 % mxfix = mean(mean(xfix,3),2);
@@ -56,12 +58,13 @@ xsorted = [];
 for i = 1:size(params.comb.comb,2)
     a = params.comb.comb(i).idx;
     for j = 1:size(a,1)
-        xsorted(i).xfs(:,:,j) = xout(:,info(a(j),15) - (set.win * params.Fsds) + 1:info(a(j),15) + (set.win * params.Fsds));
-        xsorted(i).xfix(:,:,j) = xout(:,info(a(j),15) - (set.win * params.Fsds) + 1:info(a(j),15));
-        xsorted(i).xstim(:,:,j) = xout(:,info(a(j),15) + 1:info(a(j),15) + (set.win * params.Fsds));
+        xsorted(i).xfs(:,:,j) = xout(:,info(a(j),15) - (set.win * params.Fsds) + 1:info(a(j),15) + (set.win * params.Fsds) + (set.offset * params.Fsds));
+%         xsorted(i).xfix(:,:,j) = xout(:,info(a(j),15) - (set.win * params.Fsds) + 1:info(a(j),15));
+%         xsorted(i).xstim(:,:,j) = xout(:,info(a(j),15) + 1:info(a(j),15) + (set.win * params.Fsds));
     end
 end
-save(['E:\MT_MST\Plexon\PLXfiles\' sprintf('%sp.mat',fname)],'params','info','xsorted')
+save(['E:\MT_MST\Plexon\PLXfiles\' sprintf('%s.mat',fname)],'params','info','xsorted'); %sp
+soundsc(rand(3000,1))
 return
 %% Creat NMS & MS based on file type
 params.type = fname(end);
